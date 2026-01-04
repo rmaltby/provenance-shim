@@ -7,6 +7,6 @@ use regex::Regex;
 /// This can be improved over time: start simple.
 pub fn strip_provenance(text: &str) -> String {
     // Very basic: remove trailing `----\nprovenance: ...`
-    let re = Regex::new(r"(?s)\n---\nprovenance:\n.*\s*$").unwrap();
+    let re = Regex::new(r"(?s)\n?---\s*provenance:\s*.*").unwrap();
     re.replace(text, "").to_string()
 }

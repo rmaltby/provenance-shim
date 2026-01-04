@@ -1,0 +1,21 @@
+This is a test.
+
+---
+provenance:
+   generator: AiAssistant
+   timestamp: 2026-01-04T07:09:03.957348400Z
+   model:
+     name: unknown
+     provider: null
+     version: null
+   environment:
+     tool_name: null
+     tool_version: null
+     editor: null
+     editor_version: null
+     os: windows
+   prompt_hash: sha256:5941bca80e9a8977d4b12ed9204e66c11a664c79e74a027fa83e8131f5872392
+   prompt_excerpt: testing provenance
+   sources: []
+   tags: {}
+

@@ -1,0 +1,10 @@
+[package]
+name = "prov-cli"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later OR Apache-2.0"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+provenance_core = { path = "../provenance-core" }
+anyhow = "1"
