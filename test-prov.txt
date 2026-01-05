@@ -1,0 +1,21 @@
+Hello provenance
+
+---
+provenance:
+   generator: AiAssistant
+   timestamp: 2026-01-05T04:28:27.828689600Z
+   model:
+     name: unknown
+     provider: null
+     version: null
+   environment:
+     tool_name: null
+     tool_version: null
+     editor: null
+     editor_version: null
+     os: windows
+   prompt_hash: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+   prompt_excerpt: ''
+   sources: []
+   tags: {}
+
