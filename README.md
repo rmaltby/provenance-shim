@@ -1,132 +1,55 @@
-# provenance-shim
-A Provenance Shim for AI coding agents and LLMs
-# provenance-shim
-
-A tiny, portable, language‑agnostic provenance layer for AI‑generated text.
-
-`provenance-shim` provides a minimal Rust core library for attaching structured,
-human‑readable, machine‑parsable provenance metadata to any text artifact. The
-goal is to make provenance effortless, portable, and easy to integrate into
-coding assistants, chatbots, editors, CLIs, and automation pipelines.
-
-This project is intentionally small, dependency‑light, and designed to be
-wrapped by many environments (Python, VS Code, browser extensions, Git hooks,
-etc.). The long‑term vision is to help establish provenance as a cultural norm
-for AI‑assisted content creation.
-
----
-
-## License
-
-Dual-licensed under **GPL-3.0-or-later OR Apache-2.0**.
-You may choose either license.
-
-## ✨ Features (current)
-
-- **Rust core library** (`provenance_core`)
-  - Provenance data model (generator, model info, environment, prompt hash, etc.)
-  - Builder API for ergonomic construction
-  - SHA‑256 prompt hashing
-  - YAML + JSON serialization
-  - Text annotation (YAML front‑matter style)
-  - Provenance stripping (reversible)
-- **Example program** (`cargo run --example main`)
-  - Demonstrates end‑to‑end annotation
-
----
-
-## 📦 Installation (Rust)
-
-Add to your `Cargo.toml`:
-
-```toml
-[dependencies]
-provenance_core = { path = "./provenance-core" }
-```
-
-Or once published:
-```toml
-[dependencies]
-provenance_core = "0.x"
-```
-
-## 🧪 Example
-
-```rust
-use provenance_core::{
-    Provenance, Generator, Environment, ModelInfo,
-    hash_prompt, annotate_text,
-};
-
-fn main() {
-    let prompt = "Explain the difference between a trait and a struct in Rust.";
-    let output = "A struct defines data while a trait defines behavior.";
-
-    let prov = Provenance::builder(Generator::AiAssistant)
-        .environment(Environment::from_env())
-        .model(ModelInfo {
-            name: Some("unknown".into()),
-            provider: None,
-            version: None,
-        })
-        .prompt_hash(hash_prompt(prompt))
-        .prompt_excerpt(prompt.chars().take(60).collect::<String>())
-        .add_source("user_input")
-        .build();
-
-    let annotated = annotate_text(output, &prov).unwrap();
-    println!("{annotated}");
-}
-```
-
-Running:
-```
-cargo run --example main
-```
-
-Produces:
-```
-A struct defines data while a trait defines behavior.
-
----
-provenance:
-  generator: AiAssistant
-  timestamp: 2026-01-04T06:06:39.768540Z
-  model:
-    name: unknown
-    provider: null
-    version: null
-  environment:
-    tool_name: null
-    tool_version: null
-    editor: null
-    editor_version: null
-    os: windows
-  prompt_hash: sha256:...
-  prompt_excerpt: Explain the difference between a trait and a struct in Rust.
-  sources:
-  - user_input
-  tags: {}
-```
-
-🧹 Stripping provenance
-```rust
-let stripped = provenance_core::strip_provenance(&annotated);
-```
-
-🛠 Project Structure
-```
-provenance-shim/
-  provenance-core/
-    Cargo.toml
-    src/
-      annotate.rs
-      builder.rs
-      hash.rs
-      lib.rs
-      model.rs
-      serialize.rs
-      strip.rs
-    examples/
-      main.rs
-```
+Provenance Shim
+A lightweight, language-aware provenance system for source files. The shim tracks the evolution of each file over time without polluting code or requiring specialized tooling.
+Provenance is stored externally in .provenance/, while each file contains a single pointer comment referencing its chain.
+What It Does
+- Maintains a provenance chain for every file in your repository
+- Stores provenance in human-readable YAML under .provenance/chains/
+- Inserts a language-appropriate pointer comment at the top of each file
+- Ensures idempotent annotation (safe to run repeatedly)
+- Provides a CLI (prov) for annotation, stripping, and chain inspection
+- Integrates cleanly with Git via a pre-commit hook
+Directory Layout
+.provenance/
+chains/
+<path>.yaml
+Example:
+src/lib.rs
+.provenance/chains/src/lib.rs.yaml
+Pointer Comments
+Rust:
+// provenance: .provenance/chains/src/lib.rs.yaml
+Python:
+provenance: .provenance/chains/foo.py.yaml
+Markdown:
+<!-- provenance: .provenance/chains/README.md.yaml -->
+The shim automatically chooses the correct comment style.
+CLI Usage
+Annotate a file:
+prov annotate --file src/lib.rs
+This will:
+- Strip any existing pointer comment
+- Generate a new provenance entry
+- Append it to .provenance/chains/src/lib.rs.yaml
+- Insert a fresh pointer comment at the top of the file
+Strip a pointer comment:
+prov strip --file src/lib.rs
+View a chain:
+prov chain --file src/lib.rs
+Git Integration
+Add a pre-commit hook that runs prov annotate on staged files.
+A template hook is provided in scripts/pre-commit.
+Roadmap
+- Diff hashing
+- Provenance signing
+- VS Code extension
+- GitHub Action for provenance enforcement
+- WASM bindings
+- Configurable .provenance/config.yaml
+Philosophy
+The shim is designed to make provenance:
+- Effortless
+- Transparent
+- Language-aware
+- Human-readable
+- Ecosystem-friendly
+It aims to seed provenance as a cultural norm across open-source and AI-assisted development.
