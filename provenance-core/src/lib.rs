@@ -6,6 +6,9 @@ mod hash;
 mod serialize;
 mod annotate;
 mod strip;
+mod chain;
+
+pub mod adapters;
 
 pub use model::{Provenance, Generator, ModelInfo, Environment};
 pub use builder::ProvenanceBuilder;
@@ -13,3 +16,4 @@ pub use hash::hash_prompt;
 pub use serialize::{to_yaml, from_yaml, to_json, from_json};
 pub use annotate::annotate_text;
 pub use strip::strip_provenance;
+pub use chain::{chain_path_for, load_chain, save_chain, ProvenanceChain};
