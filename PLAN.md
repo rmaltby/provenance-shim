@@ -1,180 +1,169 @@
-# provenance-shim — Project Plan
+# Provenance Shim — Updated Architecture & Roadmap
 
-This document outlines the current state of the project and the roadmap for
-future development. The goal is to evolve `provenance-shim` into a small,
-portable, widely‑adopted provenance layer for AI‑generated text.
+The provenance shim has evolved from a simple text annotator into a general-purpose,
+ecosystem-friendly provenance layer designed to track the lineage of files over time
+without polluting source code or disrupting developer workflows.
 
----
-
-# ✅ Current State (as of Jan 2026)
-
-### Core Library (Rust)
-- Provenance data model implemented
-- Builder API implemented
-- SHA‑256 prompt hashing implemented
-- YAML + JSON serialization implemented
-- Annotation (YAML front‑matter) implemented
-- Provenance stripping implemented
-- Example program working end‑to‑end
-- Project builds cleanly on stable Rust
-
-### Not yet implemented
-- CLI wrapper
-- Python bindings
-- WASM build
-- Editor integrations (VS Code, Neovim, JetBrains)
-- Browser extension
-- Git hooks
-- Crates.io release
-- Documentation site
+This document outlines the updated architecture, design principles, and roadmap.
 
 ---
 
-# 🎯 Guiding Principles
+## 1. Core Principles
 
-1. **Minimalism**  
-   The core should remain tiny, dependency‑light, and stable.
+### 1.1 Non-intrusive provenance
+Provenance should never interfere with code, formatting, or tooling.  
+All long-form provenance is stored externally in `.provenance/`.
 
-2. **Portability**  
-   The Rust core should compile to native binaries and WASM, and be easy to wrap
-   from Python, Node, and other environments.
+### 1.2 Human-readable, trustable artifacts
+Provenance chains use plain-text YAML with real file paths, not hashed identifiers.
+Users should be able to inspect provenance with no special tooling.
 
-3. **Interoperability**  
-   Provenance blocks must be:
-   - human‑readable  
-   - machine‑parsable  
-   - easy to strip  
-   - easy to diff  
+### 1.3 Language-aware integration
+Each file contains a single, language-appropriate pointer comment referencing its
+provenance chain. No block comments, no duplication, no embedded YAML.
 
-4. **Cultural adoption**  
-   The long‑term goal is to make provenance a *norm*, not a burden.
+### 1.4 Idempotent annotation
+Running the annotator multiple times must produce stable results:
+- Strip existing pointer comment
+- Generate new provenance entry
+- Append entry to chain file
+- Insert fresh pointer comment
 
----
-
-# 🚀 Roadmap
-
-## Phase 1 — Developer Tools (High Impact, Low Effort)
-**Goal:** Make provenance easy to use in everyday workflows.
-
-### 1. CLI Tool (`prov`)
-- `prov annotate <file>`
-- `prov strip <file>`
-- `prov hash <string>`
-- `prov version`
-- Optional: `prov watch` for live annotation
-
-### 2. Git Integration
-- Pre‑commit hook template
-- GitHub Action for provenance enforcement
-- GitHub Action for provenance validation
-
-### 3. Publish Rust crate
-- Publish `provenance_core` to crates.io
-- Add docs.rs documentation
+### 1.5 Extensible adapters
+Language-specific comment styles live in `provenance-core/adapters/comment/`.
 
 ---
 
-## Phase 2 — Language Bindings (Broader Reach)
+## 2. Directory Layout
 
-### 1. Python bindings
-- `pip install provenance-shim`
-- `provenance.annotate(text, prompt=...)`
-- `provenance.strip(text)`
-- `provenance.Provenance(...)`
+```
+.provenance/
+    chains/
+        <path>.yaml        # one chain file per repo file
+    config.yaml            # optional future configuration
+```
 
-### 2. Node/TypeScript bindings (optional)
-- For integration with JS tooling and editors
+Examples:
 
-### 3. WASM build
-- Enables browser + VS Code + JetBrains integration
+```
+src/lib.rs
+.provenance/chains/src/lib.rs.yaml
 
----
-
-## Phase 3 — Editor Integrations (Cultural Norm Formation)
-
-### 1. VS Code Extension
-- Detect AI‑generated text insertions
-- Auto‑append provenance blocks
-- Command palette: “Insert Provenance Block”
-- Status bar indicator
-
-### 2. Neovim Plugin
-- Lua wrapper around Rust core
-- Commands: `:ProvAnnotate`, `:ProvStrip`
-
-### 3. JetBrains Plugin
-- WASM or JNI wrapper
-- Auto‑annotation on paste or AI‑assist
+README.md
+.provenance/chains/README.md.yaml
+```
 
 ---
 
-## Phase 4 — Browser Extension
+## 3. Provenance Chain Format
 
-### Features:
-- Detect AI‑generated text in textareas
-- Add “Insert Provenance” button
-- Optional auto‑annotation mode
+Each chain file is a YAML list of provenance entries:
 
-Targets:
-- GitHub
-- StackOverflow
-- Reddit
-- Blogs
-- Documentation editors
+```yaml
+- timestamp: 2026-01-05T04:28:27Z
+  model:
+    name: unknown
+    provider: null
+    version: null
+  environment:
+    os: windows
+    editor: null
+    tool_name: prov
+    tool_version: 0.1.0
+  prompt_hash: sha256:...
+  prompt_excerpt: ""
+  diff_hash: sha256:...
+  tags: {}
+```
 
----
-
-## Phase 5 — Community & Ecosystem
-
-### 1. Documentation site
-- Overview
-- API docs
-- Examples
-- Integration guides
-
-### 2. Blog posts / announcements
-- “Why Provenance Matters”
-- “Introducing provenance-shim”
-- “A Minimal Standard for AI Provenance”
-
-### 3. Templates
-- README templates
-- CONTRIBUTING.md templates
-- Documentation templates
+Chains grow over time as files evolve.
 
 ---
 
-# 🧭 Long‑Term Vision
+## 4. Pointer Comment Format
 
-A world where:
+Each file contains a single pointer comment at the top:
 
-- AI‑generated text carries its own lineage  
-- Developers expect provenance the way they expect version control  
-- Tools and editors treat provenance as a first‑class citizen  
-- Training pipelines can distinguish human vs. synthetic data  
-- The ecosystem avoids recursive contamination and epistemic drift  
+Rust:
+```rust
+// provenance: .provenance/chains/src/lib.rs.yaml
+```
 
-`provenance-shim` is a small but foundational step toward that world.
+Python:
+```python
+# provenance: .provenance/chains/foo.py.yaml
+```
 
----
+Markdown:
+```markdown
+<!-- provenance: .provenance/chains/README.md.yaml -->
+```
 
-# 📌 Status Summary
-
-| Component            | Status |
-|----------------------|--------|
-| Rust core            | ✅ Done |
-| CLI tool             | ⏳ Next |
-| Python bindings      | ⏳ Planned |
-| WASM build           | ⏳ Planned |
-| VS Code extension    | ⏳ Planned |
-| Browser extension    | ⏳ Planned |
-| Git hooks            | ⏳ Planned |
-| Crates.io release    | ⏳ Planned |
+Pointer comments are:
+- always single-line
+- always at the top (after shebang if present)
+- never duplicated
 
 ---
 
-# 📝 Notes
+## 5. Annotation Pipeline
 
-This plan is intentionally modular. Each phase stands alone and can be
-implemented independently or by different contributors. The Rust core is stable
-enough to support all downstream integrations.
+1. **Strip existing pointer comment**  
+   Detect and remove the previous pointer comment.
+
+2. **Generate new provenance entry**  
+   Using `provenance-core` (model, environment, prompt hash, diff hash).
+
+3. **Append entry to chain file**  
+   Create chain file if missing.
+
+4. **Insert fresh pointer comment**  
+   Using the language-specific comment adapter.
+
+5. **Write updated file**  
+   Re-stage in Git if running inside a hook.
+
+This pipeline is idempotent and safe for repeated runs.
+
+---
+
+## 6. CLI Roadmap
+
+### 6.1 `prov annotate`
+- Updates chain file
+- Inserts pointer comment
+- Writes updated file
+
+### 6.2 `prov strip`
+- Removes pointer comment only
+- Does not modify chain file
+
+### 6.3 `prov chain`
+- Prints the chain for a given file
+
+### 6.4 `prov diff-hash`
+- Computes a stable hash of the staged diff (future)
+
+---
+
+## 7. Git Integration
+
+### 7.1 Pre-commit hook
+- Detect staged files
+- Run `prov annotate` on each
+- Re-stage modified files
+
+### 7.2 GitHub Action (future)
+- Validate presence of pointer comments
+- Validate chain integrity
+- Optionally enforce provenance on PRs
+
+---
+
+## 8. Future Work
+
+- Signing provenance entries
+- WASM bindings for browser-based tools
+- VS Code extension for inline provenance inspection
+- Configurable ignore/include patterns
+- Provenance visualization tools
